@@ -72,23 +72,23 @@ def send_packet(
         if mqtt_client == None:
             raise ValueError("There is no MQTT Client provided.")
 
-            if mqtt_client.connection_state != ConnectionState.CONNECTED:
-                raise ValueError("MQTT Client is not connected to the Broker.")
+        if mqtt_client.connection_state != ConnectionState.CONNECTED:
+            raise ValueError("MQTT Client is not connected to the Broker.")
 
-            # if the checks give an ALL CLEAR we tell the backend to send the packet
-            start= time.perf_counter()
-            message_id=mqtt_client.send_payload(
-                text=packet["transcript"]["text"], metadata=packet)
-            latency_ms= int((time.perf_counter()-start)*1000)
+        # if the checks give an ALL CLEAR we tell the backend to send the packet
+        start= time.perf_counter()
+        message_id=mqtt_client.send_payload(
+            text=packet["transcript"]["text"], metadata=packet)
+        latency_ms= int((time.perf_counter()-start)*1000)
 
-            return DeliveryResult(
-                ok=True,
-                transport="MQTT",
-                status_code=0,
-                latency_ms=latency_ms,
-                message=f"[*] Packet published. Message ID: {message_id}",
-                response_payload={"message_id": message_id},
-            )
+        return DeliveryResult(
+            ok=True,
+            transport="MQTT",
+            status_code=0,
+            latency_ms=latency_ms,
+            message=f"[*] Packet published. Message ID: {message_id}",
+            response_payload={"message_id": message_id},
+        )
 
     raise ValueError(f"Unsupported transport mode: {transport_mode}")
 

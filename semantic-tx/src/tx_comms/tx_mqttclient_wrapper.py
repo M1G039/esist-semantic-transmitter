@@ -12,7 +12,7 @@ TOPIC = "team9/messages"
 FEEDBACK_TOPIC = "semantic/tx"
 
 QoS = 1 # by default - prof said not to mess with this too much for know
-PORT =  8883 # this port uses TLS/SSL - no eavesdropping on traffic
+PORT =  1883 # 8883 # this port uses TLS/SSL - no eavesdropping on traffic
 
 """
 *** Brief Description of this code ***
