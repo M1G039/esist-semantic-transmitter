@@ -149,7 +149,7 @@ def render_sidebar() -> dict:
         if st.session_state.transport_mode == "MQTT":
             if "mqtt_client" not in st.session_state:
                 st.session_state.mqtt_client = MQTT_ClientWrapper(
-                    broker_host="100.79.237.17" # this is placeholder - in future it should be the IP from the broker device (RPi??) in the network
+                    broker_host="192.168.x.xxx" # this is placeholder - in future it should be the IP from the broker device (RPi??) in the network
                     # [or 10.227.xxx.xxx if in FEUP's eduroam]
                 )
                 st.session_state.mqtt_client.connect()
