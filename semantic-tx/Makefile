@@ -1,4 +1,4 @@
-# it would be the path > /home/guilherme/Desktop/MEEC/2Sem/ESIST/semantic-tx
+# it would be the path > ~/(...)/semantic-tx
 ROOT_DIR:=$(shell pwd)
 
 SRC_DIR:=${ROOT_DIR}/src
