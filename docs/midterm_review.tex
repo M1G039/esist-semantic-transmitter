@@ -1,0 +1,258 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\usepackage{float}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{svg}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds}
+
+\definecolor{lightblueprimary}{RGB}{109,174,226}
+\definecolor{lightbluesecondary}{RGB}{223,239,252}
+\definecolor{lightblueaccent}{RGB}{56,126,184}
+\definecolor{lightbluetext}{RGB}{30,58,95}
+
+\setbeamercolor{structure}{fg=lightblueaccent}
+\setbeamercolor{palette primary}{bg=lightblueaccent,fg=white}
+\setbeamercolor{palette secondary}{bg=lightblueprimary,fg=white}
+\setbeamercolor{palette tertiary}{bg=lightbluesecondary,fg=lightbluetext}
+\setbeamercolor{palette quaternary}{bg=lightbluetext,fg=white}
+\setbeamercolor{title}{bg=lightblueprimary,fg=white}
+\setbeamercolor{frametitle}{bg=lightbluesecondary,fg=lightbluetext}
+\setbeamercolor{block title}{bg=lightblueprimary,fg=white}
+\setbeamercolor{block body}{bg=lightbluesecondary,fg=black}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{item}{fg=lightblueaccent}
+\setbeamercolor{caption name}{fg=lightblueaccent}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{bibliography item}[text]
+
+\title{\textbf{Systems Engineering - Midterm Review}}
+\subtitle{\textit{Team 9 - Semantic Transmitter} - \textit{``Semantic Audio Communication using GenAI''}}
+\date{\today}
+\author[Team 9]{André Jacinto, Jo\~ao Abade, Carlos Sousa, José Santos, Eduardo Medeiros, Nuno Vieira, Guilherme Ferreira, Rodrigo Resende, In\^es Faleiro, Teresinha Teixeira, Tomás Sousa}
+\institute[FEUP]{\textbf{Faculdade de Engenharia - Universidade do Porto}}
+
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\transdissolve
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+\subsection{Team Organization}
+\begin{frame}{Team organization}
+\transdissolve
+\begin{figure}[H]
+	\centering
+	\includesvg[width=0.7\linewidth]{midterm-pres-images/team-organization.drawio.svg}
+	\label{fig:1}
+\end{figure}
+\end{frame}
+
+\subsection{Challenge Description}
+\begin{frame}{Challenge Description}
+\transdissolve
+\small
+\begin{center}
+%\begin{itemize}
+%    \item This project aims to develop a semantic transmission system to \cite{deliverable1_2026,systemconcept2026}.
+%    \item This approach targets constrained or unstable links, where classic voice messaging still consumes significant bandwidth and suffers from delivery and playback delays \cite{systemconcept2026}.
+%    \item The transmitter must remain demonstrable, privacy-preserving, and resilient even when internet connectivity is limited or unavailable \cite{deliverable1_2026,systemconcept2026}.
+%\end{itemize}
+%\vspace{-20pt}
+\begin{minipage}{0.9\textwidth}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{midterm-pres-images/challenge_Mang.png}
+\end{figure}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\section{Validated Requirements}
+\begin{frame}{Validated Requirements}
+\transdissolve
+\small
+%\begin{itemize}
+%    \item Mandatory communication requirements include asynchronous sending, a standardized transmitted packet, delivery-state feedback, and measurable bandwidth reduction relative to the original audio \cite{deliverable1_2026}.
+%    \item Mandatory user-interface requirements include explicit recording controls, dynamic display of the recognized text, real-time state feedback, and graceful error handling during demos \cite{deliverable1_2026}.
+%    \item Mandatory AI-processing requirements include local pre-processing, retry support for failure conditions, transcript presentation before transmission, privacy by discarding raw audio, and low end-to-end latency \cite{deliverable1_2026}.
+%    \item Validation is built into the concept through a human-in-the-loop approval step, where the extracted transcript is presented to the user before the payload is formatted and transmitted \cite{systemconcept2026,preliminarydesign2026}.
+%\end{itemize}
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.22}
+
+\begin{table}
+\centering
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.24\textwidth} X}
+\rowcolor{blue!20}
+Category & Validated requirements \\
+\hline
+\textbf{Communication} & Asynchronous message sending \\
+&  Standardized semantic payload with transcript and metadata \\
+& Delivery-state feedback \\
+& Measurable bandwidth reduction vs. raw audio transmission \\
+\rowcolor{gray!10}
+\textbf{User Interface} & Explicit start/stop recording controls \\ \rowcolor{gray!10}
+& Dynamic transcript display after processing \\ \rowcolor{gray!10}
+& Real-time status feedback \\\rowcolor{gray!10}
+& Graceful, non-disruptive error handling during demos \\
+\textbf{AI Processing} & Local audio pre-processing; retry path for capture/transcription failures; transcript shown before transmission; raw audio discarded after transcription; low end-to-end latency \\
+\rowcolor{yellow!20}
+\textbf{Validation concept} & Human-in-the-loop approval: the transcript is presented to the user before payload formatting and transmission. \\
+\hline
+\end{tabularx}
+\end{table}
+\end{frame}
+
+\section{Outcome of the Market Survey}
+\begin{frame}{Outcome of the Market Survey}
+\transdissolve
+\small
+%\begin{itemize}
+%    \item The survey identified a clear niche in education and outreach: the project combines real-time lightweight transport with generative semantic encoding, a capability set not covered by the surveyed alternatives \cite{marketsurvey2026}.
+%    \item For speech-to-text, the Whisper ecosystem emerged as the leading option because it offers strong accuracy, Portuguese support, offline execution, and an open-source-friendly ecosystem \cite{marketsurvey2026}.
+%    \item For communication, MQTT was selected over WebSocket and WebRTC because its brokered publish/subscribe model has very low overhead and matches the asynchronous integration needs of the transmitter-receiver architecture \cite{marketsurvey2026,systemconcept2026}.
+%\end{itemize}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{midterm-pres-images/market.drawio.png}
+	\label{fig:2}
+\end{figure}
+\end{frame}
+
+\section{System Breakdown Structure}
+\begin{frame}{System Breakdown Structure}
+\transdissolve
+\small
+%\begin{itemize}
+%    \item The System Breakdown Structure isolates the transmitter scope inside the broader end-to-end semantic communication system, keeping the broker and receiver outside the local boundary \cite{systemconcept2026}.
+%    \item Inside the transmitter, the main subsystems are the User Interface Subsystem, the Audio/AI Processing Subsystem, and the Communications Subsystem \cite{systemconcept2026}.
+%    \item The SBS also supports traceability by mapping requirement groups to lower-level elements such as audio capture control, semantic validation display, buffer management, STT, payload formatting, and MQTT broker interfacing \cite{systemconcept2026}.
+%\end{itemize}
+\begin{figure}[H]
+	\centering
+	\includesvg[width=\textwidth]{midterm-pres-images/SBS.drawio.svg}
+\end{figure}
+\end{frame}
+
+\section{Functional Architecture}
+\begin{frame}{Functional Architecture}
+\transdissolve
+\small
+%\begin{itemize}
+%    \item The functional flow starts with audio capture, validates the signal, conditions the audio, and sends the prepared input to the semantic extraction stage \cite{systemconcept2026}.
+%    \item After local speech-to-text execution, the system checks whether speech was detected and then presents the extracted information to the user for validation \cite{systemconcept2026}.
+%    \item Once approved, the transmitter formats the transcript and metadata into a structured JSON payload and publishes it to the MQTT broker while updating the interface with states such as Pending, Sent, Delivered, or Failed \cite{systemconcept2026}.
+%\end{itemize}
+\vspace{-15pt}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{midterm-pres-images/func-arch.png}
+\end{figure}
+\vfill
+\end{frame}
+
+\section{Measures of Effectiveness and Performance}
+\begin{frame}{Measures of Effectiveness and Performance}
+\transdissolve
+\small
+\begin{itemize}
+    \item In systems engineering, technical measurement combines measures of effectiveness, measures of performance, and technical performance measures to judge whether the solution can satisfy mission and stakeholder goals \cite{sebok2025}.
+    \item For this project, representative \textbf{measures of effectiveness} are successful offline classroom demonstration, clear user feedback during live operation, and useful communication under constrained-network conditions \cite{systemconcept2026,deliverable1_2026}.
+    \item Representative \textbf{measures of performance} are end-to-end transcription latency, standardized payload publication, visible delivery-state feedback, and measurable bandwidth reduction versus raw audio transmission \cite{deliverable1_2026,marketsurvey2026}.
+    \item Representative \textbf{technical performance measures} are STT accuracy indicators such as Word Error Rate, broker delivery reliability, and processing responsiveness on available local hardware \cite{sebok2025,marketsurvey2026,systemconcept2026}.
+\end{itemize}
+\end{frame}
+
+\section{System Concept}
+\begin{frame}{System Concept}
+\transdissolve
+\small
+%\begin{itemize}
+%    \item The selected concept is edge-oriented: short speech is captured locally, processed with a local AI pipeline, serialized into a lightweight payload, and sent asynchronously to the receiver side \cite{systemconcept2026}.
+%    \item Hardware assumptions include a user device with microphone and browser, a local computation node able to run the STT model, and a reachable local broker host \cite{systemconcept2026}.
+%    \item The software concept combines a web GUI, audio conditioning, a Whisper-based semantic encoder, a packet builder, and an MQTT transport client, keeping the architecture modular and testable \cite{systemconcept2026,preliminarydesign2026}.
+%\end{itemize}
+\begin{figure}[H]
+	\centering
+	\includesvg[width=0.7\textwidth]{midterm-pres-images/system-concept.svg}
+\end{figure}
+\end{frame}
+
+\section{Work Breakdown Structure}
+\begin{frame}{Work Breakdown Structure + Gantt}
+\transdissolve
+\small
+\begin{itemize}
+    \item At the management level, the team planned to build a Work Breakdown Structure and map it into a semester-long Gantt chart to expose milestones, deadlines, and cross-subsystem dependencies \cite{teammanual2026}.
+    \item The WBS is naturally aligned with the main work domains already defined in the project: frontend interaction, audio and AI processing, communications, integration with the receiver, and documentation \cite{teammanual2026,preliminarydesign2026}.
+    \item Execution is organized in weekly cycles with Wednesday planning reviews and recurring integration checkpoints, which gives the Gantt both a milestone view and an operational cadence \cite{teammanual2026}.
+\end{itemize}
+\end{frame}
+
+\section{Risk Management}
+\begin{frame}{Risk Management}
+\transdissolve
+\small
+\begin{itemize}
+    \item The main technical risks are edge-hardware limitations and high speech-to-text latency, both of which could reduce demo quality and user confidence \cite{systemconcept2026}.
+    \item The main operational risk is broker or network instability; the selected mitigations are MQTT QoS mechanisms, asynchronous behavior, and local queuing or retry strategies \cite{deliverable1_2026,systemconcept2026}.
+    \item Additional architectural risks are privacy leakage and interface drift with the receiver; the mitigations are immediate disposal of raw audio and treating the payload schema as a formal contract \cite{systemconcept2026,preliminarydesign2026}.
+\end{itemize}
+\end{frame}
+
+\section{Conclusion}
+\subsection{Internal Evaluation}
+\begin{frame}{Internal Evaluation}
+\transdissolve
+\small
+%\begin{itemize}
+%    \item The internal evaluation process uses milestone-based peer assessment through a standardized Google Forms workflow that exports results to a master sheet for analysis \cite{teammanual2026}.
+%    \item Participation in classes is explicitly captured by the attendance and punctuality criterion, which covers both official supervisor sessions and internal synchronization meetings \cite{teammanual2026}.
+%    \item To reduce grading bias, each evaluator can assign the maximum score in at most two criteria for a given peer, which caps the highest possible peer-assigned score at 18/20 \cite{teammanual2026}.
+%\end{itemize}
+\begin{figure}
+	\centering
+	\includesvg[width=0.85\textwidth]{midterm-pres-images/internal-eval.svg}
+\end{figure}
+\end{frame}
+
+\subsection{Next Steps}
+\begin{frame}{End of Semester Plan}
+\transdissolve
+\small
+\begin{itemize}
+    \item The next step is to move from preliminary design into concrete implementation of the user interface, the audio-conditioning chain, the semantic processing module, the payload builder, and the MQTT client \cite{preliminarydesign2026}.
+    \item In parallel, the team needs to consolidate the transmitter-receiver interface, keep architectural consistency with previous deliverables, and continue integration testing under realistic local-demo conditions \cite{teammanual2026,preliminarydesign2026}.
+    \item The end-of-semester objective is a stable demonstrator that preserves the validated requirements, supports local operation, and is ready for evaluation and live presentation \cite{deliverable1_2026,systemconcept2026,preliminarydesign2026}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+\footnotesize
+\bibliographystyle{plain}
+\bibliography{references}
+\end{frame}
+
+\end{document}
