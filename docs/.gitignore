@@ -1,0 +1,16 @@
+*.aux
+*.log 
+*.out 
+*.toc 
+*.vrb 
+*.nav 
+*.fls 
+*.fdb_latexmk 
+*.bbl 
+*.blg 
+*.pyg 
+*.snm 
+*.synctex.gz 
+_minted* 
+build/ 
+svg-inkscape/
