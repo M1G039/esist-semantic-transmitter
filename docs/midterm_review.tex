@@ -80,12 +80,11 @@
 %    \item The transmitter must remain demonstrable, privacy-preserving, and resilient even when internet connectivity is limited or unavailable \cite{deliverable1_2026,systemconcept2026}.
 %\end{itemize}
 %\vspace{-20pt}
-\begin{minipage}{0.9\textwidth}
+
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\textwidth]{midterm-pres-images/challenge_Mang.png}
+	\includegraphics[width=0.95\textwidth]{midterm-pres-images/challenge_Mang.png}
 \end{figure}
-\end{minipage}
 \end{center}
 \end{frame}
 
@@ -165,7 +164,7 @@ Category & Validated requirements \\
 %    \item After local speech-to-text execution, the system checks whether speech was detected and then presents the extracted information to the user for validation \cite{systemconcept2026}.
 %    \item Once approved, the transmitter formats the transcript and metadata into a structured JSON payload and publishes it to the MQTT broker while updating the interface with states such as Pending, Sent, Delivered, or Failed \cite{systemconcept2026}.
 %\end{itemize}
-\vspace{-15pt}
+%\vspace{-10pt}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{midterm-pres-images/func-arch.png}
@@ -177,12 +176,17 @@ Category & Validated requirements \\
 \begin{frame}{Measures of Effectiveness and Performance}
 \transdissolve
 \small
-\begin{itemize}
-    \item In systems engineering, technical measurement combines measures of effectiveness, measures of performance, and technical performance measures to judge whether the solution can satisfy mission and stakeholder goals \cite{sebok2025}.
-    \item For this project, representative \textbf{measures of effectiveness} are successful offline classroom demonstration, clear user feedback during live operation, and useful communication under constrained-network conditions \cite{systemconcept2026,deliverable1_2026}.
-    \item Representative \textbf{measures of performance} are end-to-end transcription latency, standardized payload publication, visible delivery-state feedback, and measurable bandwidth reduction versus raw audio transmission \cite{deliverable1_2026,marketsurvey2026}.
-    \item Representative \textbf{technical performance measures} are STT accuracy indicators such as Word Error Rate, broker delivery reliability, and processing responsiveness on available local hardware \cite{sebok2025,marketsurvey2026,systemconcept2026}.
-\end{itemize}
+%\begin{itemize}
+%    \item In systems engineering, technical measurement combines measures of effectiveness, measures of performance, and technical performance measures to judge whether the solution can satisfy mission and stakeholder goals \cite{sebok2025}.
+%    \item For this project, representative \textbf{measures of effectiveness} are successful offline classroom demonstration, clear user feedback during live operation, and useful communication under constrained-network conditions \cite{systemconcept2026,deliverable1_2026}.
+%    \item Representative \textbf{measures of performance} are end-to-end transcription latency, standardized payload publication, visible delivery-state feedback, and measurable bandwidth reduction versus raw audio transmission \cite{deliverable1_2026,marketsurvey2026}.
+%    \item Representative \textbf{technical performance measures} are STT accuracy indicators such as Word Error Rate, broker delivery reliability, and processing responsiveness on available local hardware \cite{sebok2025,marketsurvey2026,systemconcept2026}.
+%\end{itemize}
+\vspace{-30pt}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{midterm-pres-images/moe-mop.png}
+\end{figure}
 \end{frame}
 
 \section{System Concept}
