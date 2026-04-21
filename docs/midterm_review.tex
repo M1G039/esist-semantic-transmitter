@@ -164,7 +164,7 @@ Category & Validated requirements \\
 %    \item After local speech-to-text execution, the system checks whether speech was detected and then presents the extracted information to the user for validation \cite{systemconcept2026}.
 %    \item Once approved, the transmitter formats the transcript and metadata into a structured JSON payload and publishes it to the MQTT broker while updating the interface with states such as Pending, Sent, Delivered, or Failed \cite{systemconcept2026}.
 %\end{itemize}
-%\vspace{-10pt}
+\vspace{-10pt}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{midterm-pres-images/func-arch.png}
@@ -223,11 +223,22 @@ Category & Validated requirements \\
 \begin{frame}{Risk Management}
 \transdissolve
 \small
-\begin{itemize}
-    \item The main technical risks are edge-hardware limitations and high speech-to-text latency, both of which could reduce demo quality and user confidence \cite{systemconcept2026}.
-    \item The main operational risk is broker or network instability; the selected mitigations are MQTT QoS mechanisms, asynchronous behavior, and local queuing or retry strategies \cite{deliverable1_2026,systemconcept2026}.
-    \item Additional architectural risks are privacy leakage and interface drift with the receiver; the mitigations are immediate disposal of raw audio and treating the payload schema as a formal contract \cite{systemconcept2026,preliminarydesign2026}.
-\end{itemize}
+%\begin{itemize}
+%    \item The main technical risks are edge-hardware limitations and high speech-to-text latency, both of which could reduce demo quality and user confidence \cite{systemconcept2026}.
+%    \item The main operational risk is broker or network instability; the selected mitigations are MQTT QoS mechanisms, asynchronous behavior, and local queuing or retry strategies \cite{deliverable1_2026,systemconcept2026}.
+%    \item Additional architectural risks are privacy leakage and interface drift with the receiver; the mitigations are immediate disposal of raw audio and treating the payload schema as a formal contract \cite{systemconcept2026,preliminarydesign2026}.
+%\end{itemize}
+\begin{minipage}{0.8\textwidth}
+\vspace{-20pt}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth, height=8.2cm]{midterm-pres-images/risk-table.png}
+\end{figure}
+\end{minipage}
+\begin{minipage}{0.19\textwidth}
+\vspace{16pt}
+\hspace{3pt}\textbf{PoO} - Probability of Occurence
+\end{minipage}
 \end{frame}
 
 \section{Conclusion}
@@ -259,6 +270,7 @@ Category & Validated requirements \\
 
 \begin{frame}[allowframebreaks]{References}
 \footnotesize
+\nocite{*}
 \bibliographystyle{plain}
 \bibliography{references}
 \end{frame}

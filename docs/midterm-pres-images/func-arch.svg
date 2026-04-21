@@ -30,8 +30,8 @@
      showgrid="true"
      inkscape:lockguides="false"
      inkscape:zoom="1.4396184"
-     inkscape:cx="312.58284"
-     inkscape:cy="176.43565"
+     inkscape:cx="312.58283"
+     inkscape:cy="177.13027"
      inkscape:window-width="1920"
      inkscape:window-height="1052"
      inkscape:window-x="0"
@@ -247,12 +247,12 @@
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583"
          x="57.686001"
          y="84.84948"
-         id="tspan2">Speech-To-Text</tspan><tspan
+         id="tspan9">Extraction</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583"
          x="57.686001"
          y="91.023087"
-         id="tspan9">LLM</tspan></text><use
+         id="tspan5">Module</tspan></text><use
        xlink:href="#font-awesome.svg:file-audio-o"
        id="use1-31"
        transform="matrix(0.15915049,0,0,0.15915049,41.647464,49.022312)" /><use
