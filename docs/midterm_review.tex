@@ -96,12 +96,6 @@
 \transdissolve
 \small
 \begin{center}
-%\begin{itemize}
-%    \item This project aims to develop a semantic transmission system to \cite{deliverable1_2026,systemconcept2026}.
-%    \item This approach targets constrained or unstable links, where classic voice messaging still consumes significant bandwidth and suffers from delivery and playback delays \cite{systemconcept2026}.
-%    \item The transmitter must remain demonstrable, privacy-preserving, and resilient even when internet connectivity is limited or unavailable \cite{deliverable1_2026,systemconcept2026}.
-%\end{itemize}
-%\vspace{-20pt}
 
 \begin{figure}[H]
 	\centering
@@ -114,12 +108,6 @@
 \begin{frame}{Validated Requirements}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item Mandatory communication requirements include asynchronous sending, a standardized transmitted packet, delivery-state feedback, and measurable bandwidth reduction relative to the original audio \cite{deliverable1_2026}.
-%    \item Mandatory user-interface requirements include explicit recording controls, dynamic display of the recognized text, real-time state feedback, and graceful error handling during demos \cite{deliverable1_2026}.
-%    \item Mandatory AI-processing requirements include local pre-processing, retry support for failure conditions, transcript presentation before transmission, privacy by discarding raw audio, and low end-to-end latency \cite{deliverable1_2026}.
-%    \item Validation is built into the concept through a human-in-the-loop approval step, where the extracted transcript is presented to the user before the payload is formatted and transmitted \cite{systemconcept2026,preliminarydesign2026}.
-%\end{itemize}
 \setlength{\tabcolsep}{6pt}
 \renewcommand{\arraystretch}{1.22}
 
@@ -150,11 +138,6 @@ Category & Validated requirements \\
 \begin{frame}{Outcome of the Market Survey}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item The survey identified a clear niche in education and outreach: the project combines real-time lightweight transport with generative semantic encoding, a capability set not covered by the surveyed alternatives \cite{marketsurvey2026}.
-%    \item For speech-to-text, the Whisper ecosystem emerged as the leading option because it offers strong accuracy, Portuguese support, offline execution, and an open-source-friendly ecosystem \cite{marketsurvey2026}.
-%    \item For communication, MQTT was selected over WebSocket and WebRTC because its brokered publish/subscribe model has very low overhead and matches the asynchronous integration needs of the transmitter-receiver architecture \cite{marketsurvey2026,systemconcept2026}.
-%\end{itemize}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\textwidth]{midterm-pres-images/market.drawio.png}
@@ -162,15 +145,21 @@ Category & Validated requirements \\
 \end{figure}
 \end{frame}
 
+\section{System Concept}
+\begin{frame}{System Concept}
+\transdissolve
+\small
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{midterm-pres-images/sys_concept.png}
+\end{figure}
+\end{frame}
+
+
 \section{System Breakdown Structure}
 \begin{frame}{System Breakdown Structure}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item The System Breakdown Structure isolates the transmitter scope inside the broader end-to-end semantic communication system, keeping the broker and receiver outside the local boundary \cite{systemconcept2026}.
-%    \item Inside the transmitter, the main subsystems are the User Interface Subsystem, the Audio/AI Processing Subsystem, and the Communications Subsystem \cite{systemconcept2026}.
-%    \item The SBS also supports traceability by mapping requirement groups to lower-level elements such as audio capture control, semantic validation display, buffer management, STT, payload formatting, and MQTT broker interfacing \cite{systemconcept2026}.
-%\end{itemize}
 \begin{figure}[H]
 	\centering
 	\includesvg[width=\textwidth]{midterm-pres-images/SBS.drawio.svg}
@@ -181,11 +170,6 @@ Category & Validated requirements \\
 \begin{frame}{Functional Architecture}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item The functional flow starts with audio capture, validates the signal, conditions the audio, and sends the prepared input to the semantic extraction stage \cite{systemconcept2026}.
-%    \item After local speech-to-text execution, the system checks whether speech was detected and then presents the extracted information to the user for validation \cite{systemconcept2026}.
-%    \item Once approved, the transmitter formats the transcript and metadata into a structured JSON payload and publishes it to the MQTT broker while updating the interface with states such as Pending, Sent, Delivered, or Failed \cite{systemconcept2026}.
-%\end{itemize}
 \vspace{-10pt}	
 \begin{figure}[H]
 	\centering
@@ -194,47 +178,10 @@ Category & Validated requirements \\
 \vfill
 \end{frame}
 
-\section{Measures of Effectiveness and Performance}
-\begin{frame}{Measures of Effectiveness and Performance}
-\transdissolve
-\small
-%\begin{itemize}
-%    \item In systems engineering, technical measurement combines measures of effectiveness, measures of performance, and technical performance measures to judge whether the solution can satisfy mission and stakeholder goals \cite{sebok2025}.
-%    \item For this project, representative \textbf{measures of effectiveness} are successful offline classroom demonstration, clear user feedback during live operation, and useful communication under constrained-network conditions \cite{systemconcept2026,deliverable1_2026}.
-%    \item Representative \textbf{measures of performance} are end-to-end transcription latency, standardized payload publication, visible delivery-state feedback, and measurable bandwidth reduction versus raw audio transmission \cite{deliverable1_2026,marketsurvey2026}.
-%    \item Representative \textbf{technical performance measures} are STT accuracy indicators such as Word Error Rate, broker delivery reliability, and processing responsiveness on available local hardware \cite{sebok2025,marketsurvey2026,systemconcept2026}.
-%\end{itemize}
-\vspace{-15pt}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=\textwidth]{midterm-pres-images/moe-mop.png}
-\end{figure}
-\end{frame}
-
-\section{System Concept}
-\begin{frame}{System Concept}
-\transdissolve
-\small
-%\begin{itemize}
-%    \item The selected concept is edge-oriented: short speech is captured locally, processed with a local AI pipeline, serialized into a lightweight payload, and sent asynchronously to the receiver side \cite{systemconcept2026}.
-%    \item Hardware assumptions include a user device with microphone and browser, a local computation node able to run the STT model, and a reachable local broker host \cite{systemconcept2026}.
-%    \item The software concept combines a web GUI, audio conditioning, a Whisper-based semantic encoder, a packet builder, and an MQTT transport client, keeping the architecture modular and testable \cite{systemconcept2026,preliminarydesign2026}.
-%\end{itemize}
-\begin{figure}[H]
-	\centering
-	\includesvg[width=0.7\textwidth]{midterm-pres-images/system-concept.svg}
-\end{figure}
-\end{frame}
-
 \section{Work Breakdown Structure + Gantt}
 \begin{frame}{Work Breakdown Structure + Gantt}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item At the management level, the team planned to build a Work Breakdown Structure and map it into a semester-long Gantt chart to expose milestones, deadlines, and cross-subsystem dependencies \cite{teammanual2026}.
-%    \item The WBS is naturally aligned with the main work domains already defined in the project: frontend interaction, audio and AI processing, communications, integration with the receiver, and documentation \cite{teammanual2026,preliminarydesign2026}.
-%    \item Execution is organized in weekly cycles with Wednesday planning reviews and recurring integration checkpoints, which gives the Gantt both a milestone view and an operational cadence \cite{teammanual2026}.
-%\end{itemize}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth , height=7cm]{midterm-pres-images/WBS.drawio.png}
@@ -242,22 +189,28 @@ Category & Validated requirements \\
 \end{frame}
 
 \begin{frame}{Gantt Chart}
-	% TODO Insert Gantt chart here
+	\transdissolve	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=\textwidth]{midterm-pres-images/Gantt.png}
 	\end{figure}
 \end{frame}
 
+\section{Measures of Effectiveness and Performance}
+\begin{frame}{Measures of Effectiveness and Performance}
+\transdissolve
+\small
+\vspace{-15pt}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{midterm-pres-images/moe-mop.png}
+\end{figure}
+\end{frame}
+
 \section{Risk Management}
 \begin{frame}{Risk Management}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item The main technical risks are edge-hardware limitations and high speech-to-text latency, both of which could reduce demo quality and user confidence \cite{systemconcept2026}.
-%    \item The main operational risk is broker or network instability; the selected mitigations are MQTT QoS mechanisms, asynchronous behavior, and local queuing or retry strategies \cite{deliverable1_2026,systemconcept2026}.
-%    \item Additional architectural risks are privacy leakage and interface drift with the receiver; the mitigations are immediate disposal of raw audio and treating the payload schema as a formal contract \cite{systemconcept2026,preliminarydesign2026}.
-%\end{itemize}
 \begin{minipage}{0.8\textwidth}
 \vspace{-20pt}
 \begin{figure}[H]
@@ -276,11 +229,6 @@ Category & Validated requirements \\
 \begin{frame}{Internal Evaluation}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item The internal evaluation process uses milestone-based peer assessment through a standardized Google Forms workflow that exports results to a master sheet for analysis \cite{teammanual2026}.
-%    \item Participation in classes is explicitly captured by the attendance and punctuality criterion, which covers both official supervisor sessions and internal synchronization meetings \cite{teammanual2026}.
-%    \item To reduce grading bias, each evaluator can assign the maximum score in at most two criteria for a given peer, which caps the highest possible peer-assigned score at 18/20 \cite{teammanual2026}.
-%\end{itemize}
 \begin{figure}
 	\centering
 	\includesvg[width=0.85\textwidth]{midterm-pres-images/internal-eval.svg}
@@ -291,15 +239,17 @@ Category & Validated requirements \\
 \begin{frame}{End of Semester Plan}
 \transdissolve
 \small
-%\begin{itemize}
-%    \item The next step is to move from preliminary design into concrete implementation of the user interface, the audio-conditioning chain, the semantic processing module, the payload builder, and the MQTT client \cite{preliminarydesign2026}.
-%    \item In parallel, the team needs to consolidate the transmitter-receiver interface, keep architectural consistency with previous deliverables, and continue integration testing under realistic local-demo conditions \cite{teammanual2026,preliminarydesign2026}.
-%    \item The end-of-semester objective is a stable demonstrator that preserves the validated requirements, supports local operation, and is ready for evaluation and live presentation \cite{deliverable1_2026,systemconcept2026,preliminarydesign2026}.
-%\end{itemize}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{midterm-pres-images/timeline.png}
 \end{figure}
+\end{frame}
+
+\begin{frame}
+	\transdissolve
+	\begin{center}
+		\huge Thank You for Your Attention!
+	\end{center}
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
