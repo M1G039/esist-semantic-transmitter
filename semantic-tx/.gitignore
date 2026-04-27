@@ -1,0 +1,5 @@
+# ignore the python venv files
+.venv
+
+# ignore the pycache auto generated files
+__pycache__
