@@ -2,15 +2,21 @@ from __future__ import annotations
 
 from datetime import datetime
 import hashlib
+import importlib
+from io import BytesIO
 import json
 import os
+from pathlib import Path
+import sys
+import tempfile
+import time
 import uuid
+import wave
 
 import streamlit as st
 
 from transmitter.audio_processing import AudioMetadata, AudioPreprocessError, preprocess_audio
 from transmitter.semantic import encode_semantics, normalize_transcript
-from transmitter.stt import STTError, transcribe_with_openai
 from transmitter.transport import DeliveryResult, build_semantic_packet, send_packet
 from transmitter.ui_theme import apply_theme, log_item, pipeline_card
 
@@ -21,14 +27,22 @@ st.set_page_config(
     layout="wide",
 )
 
+
+@st.cache_resource(show_spinner=False)
+def get_semanticodec_model():
+    # SemantiCodec lives in project scope, so we ensure cwd is importable.
+    if os.getcwd() not in sys.path:
+        sys.path.append(os.getcwd())
+
+    semanticodec = importlib.import_module("semanticodec")
+    return semanticodec.SemantiCodec(token_rate=100, semantic_vocab_size=16384)
+
+# TODO: 
 def initialize_state() -> None:
     defaults = {
         "session_id": f"tx-{uuid.uuid4().hex[:8]}",
         "speaker_label": "Speaker A",
         "language_hint": "auto",
-        "stt_mode": "Auto (OpenAI if key)",
-        "openai_api_key": os.getenv("OPENAI_API_KEY", ""),
-        "openai_model": "whisper-1",
         "transport_mode": "Mock demo",
         "receiver_endpoint": "http://localhost:8000/semantic-packet",
         "bearer_token": "",
@@ -44,9 +58,14 @@ def initialize_state() -> None:
         "transcript_editor": "",
         "semantic_payload": None,
         "semantic_packet": None,
+        "semantic_token_file": "",
+        "semantic_token_count": 0,
+        "semantic_codec_latency_ms": 0,
+        "decoded_audio_bytes": b"",
+        "decoded_audio_sample_rate": 16_000,
+        "semantic_decode_latency_ms": 0,
+        "audio_widget_nonce": 0,
         "delivery_result": None,
-        "last_stt_provider": "N/A",
-        "last_stt_latency_ms": 0,
         "event_log": [],
     }
     for key, value in defaults.items():
@@ -61,9 +80,13 @@ def clear_pipeline_outputs() -> None:
     st.session_state.transcript_editor = ""
     st.session_state.semantic_payload = None
     st.session_state.semantic_packet = None
+    st.session_state.semantic_token_file = ""
+    st.session_state.semantic_token_count = 0
+    st.session_state.semantic_codec_latency_ms = 0
+    st.session_state.decoded_audio_bytes = b""
+    st.session_state.decoded_audio_sample_rate = 16_000
+    st.session_state.semantic_decode_latency_ms = 0
     st.session_state.delivery_result = None
-    st.session_state.last_stt_provider = "N/A"
-    st.session_state.last_stt_latency_ms = 0
 
 
 def add_event(stage: str, message: str, status: str = "info") -> None:
@@ -93,116 +116,11 @@ def register_audio(audio_bytes: bytes, source: str, audio_format: str = "audio/w
 
 
 def render_sidebar() -> dict:
-    with st.sidebar:
-        st.markdown("## Transmitter Controls")
-
-        st.session_state.speaker_label = st.text_input(
-            "Speaker label",
-            value=st.session_state.speaker_label,
-        )
-        st.session_state.session_id = st.text_input(
-            "Session ID",
-            value=st.session_state.session_id,
-        )
-
-        st.session_state.language_hint = st.selectbox(
-            "Language hint",
-            options=["auto", "en", "pt"],
-            index=["auto", "en", "pt"].index(st.session_state.language_hint),
-            help="Hint sent to STT and included in packet metadata.",
-        )
-
-        st.session_state.stt_mode = st.selectbox(
-            "Speech-to-text mode",
-            options=[
-                "Auto (OpenAI if key)",
-                "OpenAI Whisper API",
-                "Manual transcript only",
-            ],
-            index=[
-                "Auto (OpenAI if key)",
-                "OpenAI Whisper API",
-                "Manual transcript only",
-            ].index(st.session_state.stt_mode),
-        )
-
-        st.session_state.openai_api_key = st.text_input(
-            "OpenAI API key",
-            type="password",
-            value=st.session_state.openai_api_key,
-        )
-        st.session_state.openai_model = st.text_input(
-            "Transcription model",
-            value=st.session_state.openai_model,
-        )
-
-        st.session_state.transport_mode = st.selectbox(
-            "Transport mode",
-            options=["Mock demo", "HTTP POST", "WebSocket"],
-            index=["Mock demo", "HTTP POST", "WebSocket"].index(
-                st.session_state.transport_mode
-            ),
-        )
-
-        endpoint_default = (
-            "http://localhost:8000/semantic-packet"
-            if st.session_state.transport_mode == "HTTP POST"
-            else "ws://localhost:8000/ws/semantic"
-        )
-        if st.session_state.transport_mode != "Mock demo":
-            if not st.session_state.receiver_endpoint:
-                st.session_state.receiver_endpoint = endpoint_default
-            if st.session_state.transport_mode == "HTTP POST" and st.session_state.receiver_endpoint.startswith(
-                "ws://"
-            ):
-                st.session_state.receiver_endpoint = endpoint_default
-            if st.session_state.transport_mode == "WebSocket" and st.session_state.receiver_endpoint.startswith(
-                "http"
-            ):
-                st.session_state.receiver_endpoint = endpoint_default
-
-        st.session_state.receiver_endpoint = st.text_input(
-            "Receiver endpoint",
-            value=st.session_state.receiver_endpoint,
-            disabled=st.session_state.transport_mode == "Mock demo",
-        )
-        st.session_state.bearer_token = st.text_input(
-            "Bearer token (optional)",
-            type="password",
-            value=st.session_state.bearer_token,
-        )
-        st.session_state.network_timeout = st.slider(
-            "Network timeout (seconds)",
-            min_value=3,
-            max_value=60,
-            value=int(st.session_state.network_timeout),
-        )
-
-        if st.button("Load Demo Transcript", use_container_width=True):
-            st.session_state.manual_transcript = (
-                "Hello team, this is a semantic communication test. "
-                "Please send this message to the receiver for voice reconstruction."
-            )
-            add_event("Demo", "Demo transcript loaded.", "info")
-
-        if st.button("Start New Session", use_container_width=True):
-            st.session_state.session_id = f"tx-{uuid.uuid4().hex[:8]}"
-            st.session_state.raw_audio_bytes = b""
-            st.session_state.raw_audio_format = "audio/wav"
-            st.session_state.audio_fingerprint = ""
-            st.session_state.audio_source = ""
-            st.session_state.manual_transcript = ""
-            clear_pipeline_outputs()
-            add_event("Session", "New session started.", "info")
-            st.rerun()
 
     return {
         "speaker_label": st.session_state.speaker_label.strip() or "Speaker A",
         "session_id": st.session_state.session_id.strip() or f"tx-{uuid.uuid4().hex[:8]}",
         "language_hint": st.session_state.language_hint,
-        "stt_mode": st.session_state.stt_mode,
-        "openai_api_key": st.session_state.openai_api_key.strip(),
-        "openai_model": st.session_state.openai_model.strip() or "whisper-1",
         "transport_mode": st.session_state.transport_mode,
         "receiver_endpoint": st.session_state.receiver_endpoint.strip(),
         "bearer_token": st.session_state.bearer_token.strip(),
@@ -242,48 +160,124 @@ def process_and_transcribe(config: dict) -> None:
         st.session_state.processed_audio_bytes = b""
         st.session_state.audio_meta = None
 
-    stt_mode = config["stt_mode"]
     manual = normalize_transcript(st.session_state.manual_transcript)
-
-    if stt_mode == "Manual transcript only":
-        transcript = manual
-        if not transcript:
-            raise ValueError("Manual transcript is empty.")
-        add_event("STT", "Manual transcript mode selected.", "info")
-    elif stt_mode == "Auto (OpenAI if key)" and not config["openai_api_key"]:
-        transcript = manual
-        if not transcript:
-            raise STTError(
-                "No OpenAI API key detected. Add a key, switch to manual mode, "
-                "or write a manual transcript fallback."
-            )
-        add_event("STT", "OpenAI key missing, manual fallback used.", "info")
+    transcript = manual
+    if transcript:
+        add_event("STT", "Manual transcript provided.", "info")
     else:
-        if not st.session_state.processed_audio_bytes:
-            raise AudioPreprocessError("Record or upload audio before automatic STT.")
-        result = transcribe_with_openai(
-            st.session_state.processed_audio_bytes,
-            api_key=config["openai_api_key"],
-            model=config["openai_model"],
-            language_hint=config["language_hint"],
-        )
-        transcript = normalize_transcript(result.text)
-        st.session_state.last_stt_provider = f"{result.provider} ({result.model})"
-        st.session_state.last_stt_latency_ms = result.latency_ms
-        add_event(
-            "STT",
-            f"Automatic transcription complete in {result.latency_ms} ms.",
-            "success",
-        )
-
-    if not transcript:
-        raise ValueError("Transcript is empty after processing.")
+        add_event("STT", "No manual transcript provided. You can still build tokens and edit transcript later.", "info")
 
     st.session_state.transcript = transcript
     st.session_state.transcript_editor = transcript
     st.session_state.semantic_payload = None
     st.session_state.semantic_packet = None
+    st.session_state.decoded_audio_bytes = b""
+    st.session_state.semantic_decode_latency_ms = 0
     st.session_state.delivery_result = None
+
+
+def run_semantic_codec(audio_wav: bytes, output_filename: str = "pacote_semantico.pt") -> dict:
+    if not audio_wav:
+        raise ValueError("Processed audio is empty. Capture audio before semantic encoding.")
+
+    torch_mod = importlib.import_module("torch")
+    model = get_semanticodec_model()
+    temp_audio_path = ""
+    start = time.perf_counter()
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
+            temp_audio.write(audio_wav)
+            temp_audio_path = temp_audio.name
+
+        with torch_mod.no_grad():
+            tokens = model.encode(temp_audio_path)
+
+        output_path = Path(os.getcwd()) / output_filename
+        torch_mod.save(tokens, output_path)
+
+        token_count = 0
+        if hasattr(tokens, "numel"):
+            token_count = int(tokens.numel())
+        elif hasattr(tokens, "__len__"):
+            token_count = int(len(tokens))
+
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        return {
+            "output_path": str(output_path),
+            "token_count": token_count,
+            "latency_ms": latency_ms,
+        }
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "Missing dependency while running SemantiCodec. Ensure torch and semanticodec are installed."
+        ) from exc
+    finally:
+        if temp_audio_path and os.path.exists(temp_audio_path):
+            os.remove(temp_audio_path)
+
+
+def waveform_to_wav_bytes(waveform, sample_rate: int = 16_000) -> bytes:
+    torch_mod = importlib.import_module("torch")
+    np_mod = importlib.import_module("numpy")
+
+    # SemantiCodec decode may return either torch.Tensor or numpy.ndarray.
+    if isinstance(waveform, np_mod.ndarray):
+        waveform = torch_mod.from_numpy(waveform)
+
+    if waveform.ndim == 3:
+        waveform = waveform[0]
+    if waveform.ndim == 2:
+        waveform = waveform[0]
+    if waveform.ndim != 1:
+        raise ValueError("Decoded waveform has an unsupported shape.")
+
+    if hasattr(waveform, "detach"):
+        waveform = waveform.detach()
+
+    pcm = (
+        waveform.cpu()
+        .clamp(-1.0, 1.0)
+        .mul(32767.0)
+        .to(torch_mod.int16)
+        .numpy()
+        .tobytes()
+    )
+
+    buffer = BytesIO()
+    with wave.open(buffer, "wb") as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(pcm)
+    return buffer.getvalue()
+
+
+def decode_semantic_tokens(token_file: str) -> dict:
+    if not token_file:
+        raise ValueError("No semantic token file available to decode.")
+
+    token_path = Path(token_file)
+    if not token_path.exists():
+        raise ValueError(f"Semantic token file not found: {token_file}")
+
+    torch_mod = importlib.import_module("torch")
+    model = get_semanticodec_model()
+    start = time.perf_counter()
+
+    with torch_mod.no_grad():
+        tokens = torch_mod.load(token_path, map_location="cpu")
+        if hasattr(tokens, "to"):
+            tokens = tokens.to(model.device)
+        waveform = model.decode(tokens)
+
+    wav_bytes = waveform_to_wav_bytes(waveform, sample_rate=16_000)
+    latency_ms = int((time.perf_counter() - start) * 1000)
+    return {
+        "wav_bytes": wav_bytes,
+        "sample_rate": 16_000,
+        "latency_ms": latency_ms,
+    }
 
 
 def build_packet(config: dict, transcript_text: str) -> None:
@@ -322,31 +316,17 @@ def main() -> None:
     config = render_sidebar()
     render_hero(config)
 
-    status_capture = bool(st.session_state.raw_audio_bytes)
-    status_stt = bool(st.session_state.transcript.strip())
-    status_semantic = st.session_state.semantic_payload is not None
-    status_packet = st.session_state.semantic_packet is not None
-    status_delivery = bool(
-        st.session_state.delivery_result and st.session_state.delivery_result.ok
-    )
-
-    step_cols = st.columns(5)
-    cards = [
-        ("1) Capture", "Short speech recording from user input.", status_capture),
-        ("2) STT", "Whisper/OpenAI or manual transcript fallback.", status_stt),
-        ("3) Semantics", "Intent, keywords, entities, summary extraction.", status_semantic),
-        ("4) Packaging", "JSON semantic packet + checksum.", status_packet),
-        ("5) Delivery", "Transmit to receiver (Mock/HTTP/WebSocket).", status_delivery),
-    ]
-    for col, (title, desc, done) in zip(step_cols, cards, strict=False):
-        with col:
-            st.markdown(pipeline_card(title, desc, done), unsafe_allow_html=True)
-
     st.markdown("### 1) Audio Capture and Preprocessing")
-    audio_from_mic = st.audio_input("Record a short speech sample (recommended: 5-30 seconds)")
+
+    # Keys include a nonce so Clear can force-reset widget state.
+    audio_from_mic = st.audio_input(
+        "Record a short speech sample (recommended: 5-30 seconds)",
+        key=f"audio_input_{st.session_state.audio_widget_nonce}",
+    )
     audio_uploaded = st.file_uploader(
         "Or upload an audio file",
         type=["wav", "mp3", "ogg", "m4a"],
+        key=f"audio_upload_{st.session_state.audio_widget_nonce}",
     )
 
     if audio_from_mic is not None:
@@ -364,31 +344,54 @@ def main() -> None:
     else:
         st.info("No audio sample yet. Record from microphone or upload a file.")
 
-    st.session_state.manual_transcript = st.text_area(
-        "Manual transcript fallback",
-        value=st.session_state.manual_transcript,
-        height=95,
-        placeholder="Write transcript here if you want manual mode or fallback.",
-    )
-
     run_col, clear_col = st.columns([3, 1])
-    process_disabled = not (
-        st.session_state.raw_audio_bytes or st.session_state.manual_transcript.strip()
-    )
+    process_disabled = not st.session_state.raw_audio_bytes
     with run_col:
         if st.button(
-            "Process Audio + Generate Transcript",
+            "Encode",
             type="primary",
             use_container_width=True,
             disabled=process_disabled,
         ):
-            with st.spinner("Processing speech and preparing semantic transmitter pipeline..."):
-                try:
-                    process_and_transcribe(config)
-                    st.success("Transcript is ready. Continue to semantic encoding.")
-                except Exception as exc:
-                    add_event("Pipeline", str(exc), "error")
-                    st.error(str(exc))
+            status = st.status("Running audio pipeline...", expanded=True)
+            progress = st.progress(0)
+            try:
+                status.write("Step 1/4: Preprocessing audio and validating transcript...")
+                process_and_transcribe(config)
+                progress.progress(25)
+
+                status.write("Step 2/4: Encoding semantic tokens with SemantiCodec...")
+                codec_result = run_semantic_codec(st.session_state.processed_audio_bytes)
+                st.session_state.semantic_token_file = codec_result["output_path"]
+                st.session_state.semantic_token_count = codec_result["token_count"]
+                st.session_state.semantic_codec_latency_ms = codec_result["latency_ms"]
+                add_event(
+                    "SemantiCodec",
+                    f"Token file generated at {codec_result['output_path']} in {codec_result['latency_ms']} ms.",
+                    "success",
+                )
+                progress.progress(60)
+
+                status.write("Step 3/4: Decoding tokens back to WAV preview...")
+                decode_result = decode_semantic_tokens(st.session_state.semantic_token_file)
+                st.session_state.decoded_audio_bytes = decode_result["wav_bytes"]
+                st.session_state.decoded_audio_sample_rate = decode_result["sample_rate"]
+                st.session_state.semantic_decode_latency_ms = decode_result["latency_ms"]
+                add_event(
+                    "Decode",
+                    f"Decoded token file to audio in {decode_result['latency_ms']} ms.",
+                    "success",
+                )
+                progress.progress(90)
+
+                status.write("Step 4/4: Finalizing UI state...")
+                progress.progress(100)
+                status.update(label="Pipeline complete", state="complete", expanded=False)
+                st.success("Encoding complete. Token file and decoded preview are ready.")
+            except Exception as exc:
+                status.update(label="Pipeline failed", state="error", expanded=True)
+                add_event("Pipeline", str(exc), "error")
+                st.error(str(exc))
     with clear_col:
         if st.button("Clear", use_container_width=True):
             st.session_state.raw_audio_bytes = b""
@@ -396,8 +399,9 @@ def main() -> None:
             st.session_state.audio_fingerprint = ""
             st.session_state.audio_source = ""
             st.session_state.manual_transcript = ""
+            st.session_state.audio_widget_nonce += 1
             clear_pipeline_outputs()
-            add_event("Capture", "Audio sample and pipeline state cleared.", "info")
+            add_event("Capture", "Audio sample, widgets, and pipeline state cleared.", "info")
             st.rerun()
 
     if st.session_state.processed_audio_bytes:
@@ -405,46 +409,38 @@ def main() -> None:
         st.audio(st.session_state.processed_audio_bytes, format="audio/wav")
     show_audio_metrics(st.session_state.audio_meta)
 
-    st.markdown("### 2) Semantic Encoding and Packet Build")
-    st.session_state.transcript_editor = st.text_area(
-        "Transcript (editable before packaging)",
-        value=st.session_state.transcript_editor,
-        height=130,
-        placeholder="Transcript will appear here after STT or manual input.",
-    )
+    if st.session_state.semantic_token_file:
+        t1, t2, t3 = st.columns(3)
+        t1.metric("SemantiCodec Tokens", st.session_state.semantic_token_count)
+        t2.metric("Encode Latency", f"{st.session_state.semantic_codec_latency_ms} ms")
+        t3.metric("Token File", Path(st.session_state.semantic_token_file).name)
 
-    if st.button(
-        "Build Semantic Packet",
-        use_container_width=True,
-        disabled=not st.session_state.transcript_editor.strip(),
-    ):
-        try:
-            build_packet(config, st.session_state.transcript_editor)
-            st.success("Semantic packet built successfully.")
-        except Exception as exc:
-            add_event("Packet", str(exc), "error")
-            st.error(str(exc))
+        token_path = Path(st.session_state.semantic_token_file)
+        if token_path.exists():
+            with token_path.open("rb") as token_file:
+                st.download_button(
+                    "Download Semantic Token File",
+                    data=token_file.read(),
+                    file_name=token_path.name,
+                    mime="application/octet-stream",
+                    use_container_width=True,
+                )
 
-    if st.session_state.semantic_payload:
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Intent", st.session_state.semantic_payload["intent"].title())
-        m2.metric("Tone", st.session_state.semantic_payload["tone"].title())
-        m3.metric("Keywords", len(st.session_state.semantic_payload["keywords"]))
-        m4.metric(
-            "Words",
-            st.session_state.semantic_payload["word_count"],
+    st.markdown("### 2) Semantic Encoding")
+    
+    if st.session_state.decoded_audio_bytes:
+        st.caption(
+            f"Decoded preview ready ({st.session_state.decoded_audio_sample_rate} Hz, "
+            f"{st.session_state.semantic_decode_latency_ms} ms)."
         )
-
-        semantic_col, packet_col = st.columns(2)
-        with semantic_col:
-            st.markdown("#### Semantic Encoding Output")
-            st.json(st.session_state.semantic_payload)
-        with packet_col:
-            st.markdown("#### JSON Semantic Packet")
-            st.code(
-                json.dumps(st.session_state.semantic_packet, indent=2, ensure_ascii=False),
-                language="json",
-            )
+        st.audio(st.session_state.decoded_audio_bytes, format="audio/wav")
+        st.download_button(
+            "Download Decoded Audio (WAV)",
+            data=st.session_state.decoded_audio_bytes,
+            file_name="decoded_preview.wav",
+            mime="audio/wav",
+            use_container_width=True,
+        )
 
     st.markdown("### 3) Transmit to Receiver")
     transmit_disabled = st.session_state.semantic_packet is None
@@ -487,19 +483,6 @@ def main() -> None:
             st.markdown("#### Receiver Response")
             st.json(delivery.response_payload)
 
-    st.markdown("### Pipeline Timeline")
-    if not st.session_state.event_log:
-        st.caption("No events yet. Start by capturing audio and running the pipeline.")
-    for event in reversed(st.session_state.event_log):
-        st.markdown(
-            log_item(event["time"], event["stage"], event["message"], event["status"]),
-            unsafe_allow_html=True,
-        )
-
-    st.caption(
-        "Transmitter aligned with project diagram: Audio Capture & Preprocessing -> STT -> "
-        "Semantic Encoding -> Data Packaging -> Receiver Transmission."
-    )
 
 
 if __name__ == "__main__":
