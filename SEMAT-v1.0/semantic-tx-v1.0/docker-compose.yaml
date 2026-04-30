@@ -1,0 +1,20 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mqtt-broker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  subscriber:
+    image: eclipse-mosquitto:2
+    container_name: team10-rx
+    depends_on:
+      - mosquitto
+    stdin_open: true
+    tty: true
+    command: sh -c "sleep infinity"
